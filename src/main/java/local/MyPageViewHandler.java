@@ -20,7 +20,7 @@ public class MyPageViewHandler {
     private MyPageRepository myPageRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenOrdered_then_CREATE_1 (@Payload Ordered ordered) {
+    public void whenOrdered_then_CREATE_1(@Payload Ordered ordered) {
         try {
             if (ordered.isMe()) {
                 // view 객체 생성
@@ -32,7 +32,7 @@ public class MyPageViewHandler {
                 // view 레파지 토리에 save
                 myPageRepository.save(myPage);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -44,27 +44,41 @@ public class MyPageViewHandler {
             if (shipped.isMe()) {
                 // view 객체 조회
                 List<MyPage> myPageList = myPageRepository.findByOrderId(shipped.getOrderId());
-                for(MyPage myPage : myPageList){
+                for (MyPage myPage : myPageList) {
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
                     myPage.setStatus(shipped.getStatus());
                     // view 레파지 토리에 save
                     myPageRepository.save(myPage);
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenOrdered_then_DELETE_1(@Payload DeliveryCanceled deliveryCanceled) {
+    public void whenDeliveryCanceled_then_UPDATE_2(@Payload DeliveryCanceled deliveryCanceled) {
         try {
             if (deliveryCanceled.isMe()) {
-                // view 레파지 토리에 삭제 쿼리
-                myPageRepository.deleteByDeliveryId(deliveryCanceled.getId());
+                // view 객체 조회
+                List<MyPage> myPageList = myPageRepository.findByOrderId(deliveryCanceled.getOrderId());
+                for (MyPage myPage : myPageList) {
+                    // view 객체에 이벤트의 eventDirectValue 를 set 함
+                    myPage.setStatus(deliveryCanceled.getStatus());
+                    // view 레파지 토리에 save
+                    myPageRepository.save(myPage);
+                }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
+//        try {
+//            if (deliveryCanceled.isMe()) {
+//                // view 레파지 토리에 삭제 쿼리
+//                myPageRepository.deleteByDeliveryId(deliveryCanceled.getId());
+//            }
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
         }
     }
 }
